@@ -1,6 +1,19 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, DateTime, Date, ForeignKey, Float
+
+from sqlalchemy import (
+    Boolean,
+    Column,
+    Integer,
+    String,
+    DateTime,
+    Date,
+    ForeignKey,
+    Float,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+
 from app.database import Base
 
 
@@ -25,15 +38,24 @@ class User(Base):
     role = Column(String, nullable=False, default="patient")
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    # gait_records = relationship(
-    #     "GaitRecord",
-    #     back_populates="user",
-    #     cascade="all, delete-orphan"
-    # )
+    gait_records = relationship(
+        "GaitRecord",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    patient_reports = relationship(
+        "PatientReport",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
 
 
 class GaitRecord(Base):
     __tablename__ = "gait_records"
+    __table_args__ = (
+        UniqueConstraint("user_id", "record_date", name="uq_user_record_date"),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
@@ -47,4 +69,26 @@ class GaitRecord(Base):
 
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    # user = relationship("User", back_populates="gait_records")
+    user = relationship("User", back_populates="gait_records")
+
+
+class PatientReport(Base):
+    __tablename__ = "patient_reports"
+    __table_args__ = (
+        UniqueConstraint("user_id", "report_date", name="uq_user_report_date"),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+
+    report_date = Column(Date, nullable=False, index=True)
+    pain_score = Column(Integer, nullable=False)
+    stiffness_score = Column(Integer, nullable=False)
+    walking_difficulty = Column(Integer, nullable=False)
+    confidence_score = Column(Integer, nullable=False)
+    swelling_flag = Column(Boolean, default=False, nullable=False)
+    exercise_completed = Column(Boolean, default=False, nullable=False)
+    notes = Column(String, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    user = relationship("User", back_populates="patient_reports")
