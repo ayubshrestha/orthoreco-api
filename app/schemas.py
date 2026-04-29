@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from typing import Optional, List
-from pydantic import BaseModel, EmailStr, ConfigDict
+from pydantic import BaseModel, EmailStr, ConfigDict, Field
 
 
 class UserRegister(BaseModel):
@@ -98,3 +98,35 @@ class ClinicianDashboard(BaseModel):
     total_patients: int
     total_gait_records: int
     patients: List[ClinicianPatientSummary]
+
+class PatientReportCreate(BaseModel):
+    report_date: date
+    pain_score: int = Field(..., ge=0, le=10)
+    stiffness_score: int = Field(..., ge=0, le=10)
+    walking_difficulty: int = Field(..., ge=0, le=10)
+    confidence_score: int = Field(..., ge=0, le=10)
+    swelling_flag: bool = False
+    exercise_completed: bool = False
+    notes: Optional[str] = None
+
+
+class PatientReportOut(BaseModel):
+    id: int
+    user_id: int
+    report_date: date
+    pain_score: int
+    stiffness_score: int
+    walking_difficulty: int
+    confidence_score: int
+    swelling_flag: bool
+    exercise_completed: bool
+    notes: Optional[str]
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class PatientReportSummaryOut(PatientReportOut):
+    recovery_score: int
+    recovery_status: str
+    recovery_message: str

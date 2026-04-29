@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from app.database import Base, engine
-from app.routers import auth, gait, dashboard
+from app.routers import auth, gait, dashboard, reports
 
 Base.metadata.create_all(bind=engine)
 
@@ -13,7 +13,7 @@ app = FastAPI(
 app.include_router(auth.router)
 app.include_router(gait.router)
 app.include_router(dashboard.router)
-
+app.include_router(reports.router)
 
 @app.get("/")
 def root():
