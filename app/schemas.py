@@ -266,3 +266,18 @@ class AdminAnalyticsOut(BaseModel):
     recovery_distribution: List[RecoveryBucket]
     top_risk_patients: List[RiskPatient]
     patients_active_last_7_days: int
+
+
+class WeeklyRecoverySummaryOut(BaseModel):
+    total_checkins: int
+    average_pain: float
+    average_stiffness: float
+    average_walking_difficulty: float
+    average_confidence: float
+    exercise_completion_percentage: float
+    swelling_days: int
+    missing_dates: List[str]
+    missed_days_count: int
+    current_streak: int
+    trend_message: str
+    risk_message: str
