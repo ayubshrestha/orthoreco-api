@@ -39,6 +39,15 @@ export function OverviewPage() {
 
   return (
     <>
+      <div className="page-header">
+        <div>
+          <h1>Overview</h1>
+          <div className="subtitle">
+            Recovery KPIs across the cohort and patients flagged for follow-up.
+          </div>
+        </div>
+      </div>
+
       <div className="kpi-grid">
         <Kpi label="Patients" value={data.total_patients} />
         <Kpi label="Clinicians" value={data.total_clinicians} />
@@ -119,7 +128,7 @@ export function OverviewPage() {
                     <td>{p.last_report_date}</td>
                     <td>
                       <Link to={`/patients/${p.patient_id}`}>View</Link>
-                      {" · "}
+                      <span className="faint" style={{ margin: "0 0.4rem" }}>·</span>
                       <Link to={`/appointments?patient_id=${p.patient_id}`}>
                         Invite
                       </Link>

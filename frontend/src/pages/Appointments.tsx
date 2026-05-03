@@ -82,6 +82,16 @@ export function AppointmentsPage() {
 
   return (
     <>
+      <div className="page-header">
+        <div>
+          <h1>Appointments</h1>
+          <div className="subtitle">
+            Schedule follow-ups and email invitations to patients — at-risk
+            patients are listed first.
+          </div>
+        </div>
+      </div>
+
       <div className="card">
         <h2>Schedule an appointment</h2>
         <p className="muted" style={{ marginBottom: "1rem" }}>
@@ -91,14 +101,7 @@ export function AppointmentsPage() {
         </p>
 
         {error && <div className="error">{error}</div>}
-        {success && (
-          <div
-            className="error"
-            style={{ background: "#dcfce7", color: "#166534" }}
-          >
-            {success}
-          </div>
-        )}
+        {success && <div className="success-banner">{success}</div>}
 
         <form onSubmit={onSubmit}>
           <div
@@ -184,7 +187,7 @@ export function AppointmentsPage() {
           </label>
 
           <div style={{ marginTop: "1rem" }}>
-            <button type="submit" className="primary" disabled={submitting}>
+            <button type="submit" className="brand" disabled={submitting}>
               {submitting ? "Scheduling…" : "Schedule appointment"}
             </button>
           </div>

@@ -27,8 +27,17 @@ export function PatientsPage() {
 
   return (
     <>
+      <div className="page-header">
+        <div>
+          <h1>Patients</h1>
+          <div className="subtitle">
+            Browse the cohort and drill into a patient's recovery history.
+          </div>
+        </div>
+      </div>
+
       <div className="card">
-        <h2>Patients</h2>
+        <h2>All patients</h2>
         <div className="toolbar">
           <input
             placeholder="Search by name, email, or patient_id"

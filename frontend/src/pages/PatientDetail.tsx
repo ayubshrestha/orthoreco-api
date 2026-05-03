@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import { api, type PatientDetail } from "../api";
 import { StatusPill } from "../components/StatusPill";
+import { IconArrowLeft, IconCalendar } from "../components/Icons";
 
 export function PatientDetailPage() {
   const { patientId } = useParams<{ patientId: string }>();
@@ -38,42 +39,29 @@ export function PatientDetailPage() {
   return (
     <>
       <Link to="/patients" className="back-link">
-        ← Back to patients
+        <IconArrowLeft size={14} /> Back to patients
       </Link>
 
-      <div className="card">
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: "0.75rem",
-          }}
-        >
-          <h2 style={{ marginBottom: 0 }}>
-            {profile.first_name} {profile.last_name}{" "}
-            <span className="muted">({profile.patient_id})</span>
-          </h2>
-          <Link
-            to={`/appointments?patient_id=${profile.patient_id}`}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.4rem",
-              background: "linear-gradient(135deg, #4f6ef7, #7a8df9)",
-              color: "#fff",
-              padding: "0.55rem 1.1rem",
-              borderRadius: "8px",
-              textDecoration: "none",
-              fontSize: "0.875rem",
-              fontWeight: 600,
-              boxShadow: "0 4px 12px rgba(79, 110, 247, 0.3)",
-            }}
-          >
-            📅 Invite to appointment
-          </Link>
+      <div className="page-header">
+        <div>
+          <h1>
+            {profile.first_name} {profile.last_name}
+          </h1>
+          <div className="subtitle">
+            <code>{profile.patient_id}</code> · {profile.surgery_type} (
+            {profile.surgery_side})
+          </div>
         </div>
+        <Link
+          to={`/appointments?patient_id=${profile.patient_id}`}
+          className="invite-cta"
+        >
+          <IconCalendar size={14} /> Invite to appointment
+        </Link>
+      </div>
+
+      <div className="card">
+        <h2>Profile</h2>
         <div
           style={{
             display: "grid",
