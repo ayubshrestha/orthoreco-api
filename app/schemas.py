@@ -27,6 +27,15 @@ class UserCreateByAdmin(BaseModel):
     role: str  # patient / clinician / admin
 
 
+class ClinicianRegister(BaseModel):
+    first_name: str
+    last_name: str
+    gender: str
+    license_id: str
+    email: EmailStr
+    password: str
+
+
 class UserOut(BaseModel):
     id: int
     first_name: str

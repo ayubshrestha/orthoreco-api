@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import User
-from app.schemas import UserRegister, UserOut, Token, UserCreateByAdmin
+from app.schemas import UserRegister, UserOut, Token, UserCreateByAdmin, ClinicianRegister
 from app.auth import (
     hash_password,
     authenticate_user,
@@ -38,6 +38,37 @@ def register(user: UserRegister, db: Session = Depends(get_db)):
         surgery_side=user.surgery_side,
         surgery_date=user.surgery_date,
         role="patient",
+    )
+
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
+
+
+@router.post(
+    "/register-clinician",
+    response_model=UserOut,
+    status_code=status.HTTP_201_CREATED,
+)
+def register_clinician(user: ClinicianRegister, db: Session = Depends(get_db)):
+    """Open self-registration for clinicians (doctors)."""
+    if db.query(User).filter(User.patient_id == user.license_id).first():
+        raise HTTPException(status_code=400, detail="License ID already registered")
+
+    if db.query(User).filter(User.email == user.email).first():
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    new_user = User(
+        first_name=user.first_name,
+        last_name=user.last_name,
+        gender=user.gender,
+        patient_id=user.license_id,
+        email=user.email,
+        password_hash=hash_password(user.password),
+        surgery_type="n/a",
+        surgery_side="n/a",
+        role="clinician",
     )
 
     db.add(new_user)
