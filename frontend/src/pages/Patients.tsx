@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, type PatientTableRow } from "../api";
 import { StatusPill } from "../components/StatusPill";
+import { Avatar } from "../components/Avatar";
 
 export function PatientsPage() {
   const [rows, setRows] = useState<PatientTableRow[]>([]);
@@ -63,12 +64,10 @@ export function PatientsPage() {
           <table>
             <thead>
               <tr>
-                <th>Patient ID</th>
-                <th>Name</th>
+                <th>Patient</th>
                 <th>Surgery</th>
-                <th>Side</th>
-                <th>Days post-op</th>
-                <th>Gait / Reports</th>
+                <th className="num">Days post-op</th>
+                <th className="num">Records</th>
                 <th>Last report</th>
                 <th>Recovery</th>
                 <th></th>
@@ -77,30 +76,66 @@ export function PatientsPage() {
             <tbody>
               {rows.map((p) => (
                 <tr key={p.id}>
-                  <td>{p.patient_id}</td>
                   <td>
-                    {p.first_name} {p.last_name}
-                    <div className="muted">{p.email}</div>
-                  </td>
-                  <td>{p.surgery_type}</td>
-                  <td>{p.surgery_side}</td>
-                  <td>{p.days_since_surgery ?? "—"}</td>
-                  <td>
-                    {p.total_gait_records} / {p.total_reports}
-                  </td>
-                  <td>{p.last_report_date ?? "—"}</td>
-                  <td>
-                    {p.latest_recovery_score ?? "—"}{" "}
-                    <StatusPill status={p.latest_recovery_status} />
+                    <div className="cell-primary">
+                      <Avatar firstName={p.first_name} lastName={p.last_name} />
+                      <div className="cell-stack">
+                        <span className="primary">
+                          {p.first_name} {p.last_name}
+                        </span>
+                        <span className="secondary">
+                          {p.email} · <code>{p.patient_id}</code>
+                        </span>
+                      </div>
+                    </div>
                   </td>
                   <td>
-                    <Link to={`/patients/${p.patient_id}`}>View</Link>
+                    <div className="cell-stack">
+                      <span className="primary">{p.surgery_type}</span>
+                      <span className="secondary">{p.surgery_side}</span>
+                    </div>
+                  </td>
+                  <td className="num num-mono">
+                    {p.days_since_surgery ?? "—"}
+                  </td>
+                  <td className="num num-mono">
+                    {p.total_gait_records}
+                    <span className="faint"> / </span>
+                    {p.total_reports}
+                  </td>
+                  <td>
+                    {p.last_report_date ? (
+                      <span className="num-mono">{p.last_report_date}</span>
+                    ) : (
+                      <span className="faint">—</span>
+                    )}
+                  </td>
+                  <td>
+                    <div className="cell-primary">
+                      {p.latest_recovery_score != null && (
+                        <span className="num-mono" style={{ fontWeight: 500 }}>
+                          {p.latest_recovery_score}
+                        </span>
+                      )}
+                      <StatusPill status={p.latest_recovery_status} />
+                    </div>
+                  </td>
+                  <td>
+                    <div className="cell-actions">
+                      <Link to={`/patients/${p.patient_id}`}>View</Link>
+                      <Link
+                        to={`/appointments?patient_id=${p.patient_id}`}
+                        className="brand"
+                      >
+                        Invite
+                      </Link>
+                    </div>
                   </td>
                 </tr>
               ))}
               {rows.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="muted">
+                  <td colSpan={7} className="empty-cell">
                     No patients found.
                   </td>
                 </tr>

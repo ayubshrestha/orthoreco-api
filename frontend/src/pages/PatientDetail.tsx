@@ -222,27 +222,41 @@ export function PatientDetailPage() {
               <thead>
                 <tr>
                   <th>Date</th>
-                  <th>Pain</th>
-                  <th>Stiffness</th>
-                  <th>Walking</th>
-                  <th>Confidence</th>
+                  <th className="num">Pain</th>
+                  <th className="num">Stiffness</th>
+                  <th className="num">Walking</th>
+                  <th className="num">Confidence</th>
                   <th>Swelling</th>
                   <th>Exercise</th>
-                  <th>Score</th>
+                  <th className="num">Score</th>
                   <th>Status</th>
                 </tr>
               </thead>
               <tbody>
                 {[...recent_reports].reverse().map((r) => (
                   <tr key={r.report_date}>
-                    <td>{r.report_date}</td>
-                    <td>{r.pain_score}</td>
-                    <td>{r.stiffness_score}</td>
-                    <td>{r.walking_difficulty}</td>
-                    <td>{r.confidence_score}</td>
-                    <td>{r.swelling_flag ? "Yes" : "No"}</td>
-                    <td>{r.exercise_completed ? "Yes" : "No"}</td>
-                    <td>{r.recovery_score}</td>
+                    <td className="num-mono">{r.report_date}</td>
+                    <td className="num num-mono">{r.pain_score}</td>
+                    <td className="num num-mono">{r.stiffness_score}</td>
+                    <td className="num num-mono">{r.walking_difficulty}</td>
+                    <td className="num num-mono">{r.confidence_score}</td>
+                    <td>
+                      {r.swelling_flag ? (
+                        <span className="status-pill status-NeedsAttention">Yes</span>
+                      ) : (
+                        <span className="faint">No</span>
+                      )}
+                    </td>
+                    <td>
+                      {r.exercise_completed ? (
+                        <span className="status-pill status-Good">Yes</span>
+                      ) : (
+                        <span className="faint">No</span>
+                      )}
+                    </td>
+                    <td className="num num-mono" style={{ fontWeight: 500 }}>
+                      {r.recovery_score}
+                    </td>
                     <td>
                       <StatusPill status={r.recovery_status} />
                     </td>

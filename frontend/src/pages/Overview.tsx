@@ -14,6 +14,7 @@ import {
 } from "recharts";
 import { api, type Analytics } from "../api";
 import { StatusPill } from "../components/StatusPill";
+import { Avatar } from "../components/Avatar";
 import { Link } from "react-router-dom";
 
 const BUCKET_COLORS: Record<string, string> = {
@@ -107,7 +108,7 @@ export function OverviewPage() {
                 <tr>
                   <th>Patient</th>
                   <th>Surgery</th>
-                  <th>Score</th>
+                  <th className="num">Score</th>
                   <th>Status</th>
                   <th>Last report</th>
                   <th></th>
@@ -117,21 +118,36 @@ export function OverviewPage() {
                 {data.top_risk_patients.map((p) => (
                   <tr key={p.patient_id}>
                     <td>
-                      {p.first_name} {p.last_name}{" "}
-                      <span className="muted">({p.patient_id})</span>
+                      <div className="cell-primary">
+                        <Avatar firstName={p.first_name} lastName={p.last_name} />
+                        <div className="cell-stack">
+                          <span className="primary">
+                            {p.first_name} {p.last_name}
+                          </span>
+                          <span className="secondary">
+                            <code>{p.patient_id}</code>
+                          </span>
+                        </div>
+                      </div>
                     </td>
                     <td>{p.surgery_type}</td>
-                    <td>{p.latest_recovery_score}</td>
+                    <td className="num num-mono" style={{ fontWeight: 500 }}>
+                      {p.latest_recovery_score}
+                    </td>
                     <td>
                       <StatusPill status={p.latest_recovery_status} />
                     </td>
-                    <td>{p.last_report_date}</td>
+                    <td className="num-mono">{p.last_report_date}</td>
                     <td>
-                      <Link to={`/patients/${p.patient_id}`}>View</Link>
-                      <span className="faint" style={{ margin: "0 0.4rem" }}>·</span>
-                      <Link to={`/appointments?patient_id=${p.patient_id}`}>
-                        Invite
-                      </Link>
+                      <div className="cell-actions">
+                        <Link to={`/patients/${p.patient_id}`}>View</Link>
+                        <Link
+                          to={`/appointments?patient_id=${p.patient_id}`}
+                          className="brand"
+                        >
+                          Invite
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))}

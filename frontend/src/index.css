@@ -383,25 +383,120 @@ table {
   font-size: 0.8125rem;
 }
 
-th,
-td {
+thead th {
   text-align: left;
-  padding: 0.55rem 0.75rem;
-  border-bottom: 1px solid var(--border);
-  vertical-align: middle;
-}
-th {
+  padding: 0.55rem 0.85rem;
   background: var(--surface-2);
   font-weight: 500;
   color: var(--text-muted);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
+  border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
-tbody tr:last-child td { border-bottom: none; }
+thead th:first-child {
+  border-top-left-radius: var(--r);
+  border-left: 1px solid var(--border);
+}
+thead th:last-child {
+  border-top-right-radius: var(--r);
+  border-right: 1px solid var(--border);
+}
+
+tbody td {
+  text-align: left;
+  padding: 0.7rem 0.85rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+  color: var(--text);
+}
+tbody td:first-child { border-left: 1px solid var(--border); }
+tbody td:last-child  { border-right: 1px solid var(--border); }
+tbody tr:last-child td { border-bottom: 1px solid var(--border); }
+tbody tr:last-child td:first-child { border-bottom-left-radius: var(--r); }
+tbody tr:last-child td:last-child  { border-bottom-right-radius: var(--r); }
+
 tbody tr { transition: background 0.08s ease; }
 tbody tr:hover { background: var(--surface-2); }
+
+/* Numeric alignment helper */
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+.num-mono {
+  font-family: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Cell composition */
+.cell-primary {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.cell-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  min-width: 0;
+}
+.cell-stack .primary {
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cell-stack .secondary {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Action cell — subtle link group */
+.cell-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+.cell-actions a {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--r-sm);
+  transition: background 0.1s ease, color 0.1s ease, border-color 0.1s ease;
+}
+.cell-actions a:hover {
+  background: var(--surface-2);
+  color: var(--text);
+  border-color: var(--border-strong);
+  text-decoration: none;
+}
+.cell-actions a.brand {
+  color: var(--brand-text);
+  border-color: var(--brand-soft);
+  background: var(--brand-soft);
+}
+.cell-actions a.brand:hover {
+  background: #e0e7ff;
+  color: var(--brand-2);
+  border-color: #c7d2fe;
+}
+
+/* Empty state */
+.empty-cell {
+  text-align: center;
+  padding: 2rem 1rem !important;
+  color: var(--text-muted);
+}
 
 /* =================================================================
    Status pills

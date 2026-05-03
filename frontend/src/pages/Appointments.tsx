@@ -7,6 +7,7 @@ import {
   type Appointment,
   type PatientTableRow,
 } from "../api";
+import { Avatar } from "../components/Avatar";
 
 export function AppointmentsPage() {
   const [params] = useSearchParams();
@@ -212,21 +213,61 @@ export function AppointmentsPage() {
                 </tr>
               </thead>
               <tbody>
-                {appointments.map((a) => (
-                  <tr key={a.id}>
-                    <td>{new Date(a.scheduled_for).toLocaleString()}</td>
-                    <td>
-                      <Link to={`/patients/${a.patient_patient_id}`}>
-                        {a.patient_first_name} {a.patient_last_name}
-                      </Link>
-                      <div className="muted">{a.patient_email}</div>
-                    </td>
-                    <td>{a.location ?? "—"}</td>
-                    <td>{a.status}</td>
-                    <td>{a.invitation_sent ? "Sent" : "—"}</td>
-                    <td>{a.notes ?? "—"}</td>
-                  </tr>
-                ))}
+                {appointments.map((a) => {
+                  const dt = new Date(a.scheduled_for);
+                  return (
+                    <tr key={a.id}>
+                      <td>
+                        <div className="cell-stack">
+                          <span className="primary num-mono">
+                            {dt.toLocaleDateString()}
+                          </span>
+                          <span className="secondary num-mono">
+                            {dt.toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="cell-primary">
+                          <Avatar
+                            firstName={a.patient_first_name}
+                            lastName={a.patient_last_name}
+                          />
+                          <div className="cell-stack">
+                            <Link
+                              to={`/patients/${a.patient_patient_id}`}
+                              className="primary"
+                            >
+                              {a.patient_first_name} {a.patient_last_name}
+                            </Link>
+                            <span className="secondary">
+                              {a.patient_email}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                      <td>{a.location ?? <span className="faint">—</span>}</td>
+                      <td>
+                        <span className={`status-pill status-${capStatus(a.status)}`}>
+                          {a.status}
+                        </span>
+                      </td>
+                      <td>
+                        {a.invitation_sent ? (
+                          <span className="status-pill status-Good">Sent</span>
+                        ) : (
+                          <span className="faint">—</span>
+                        )}
+                      </td>
+                      <td className="muted">
+                        {a.notes ?? <span className="faint">—</span>}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -234,6 +275,14 @@ export function AppointmentsPage() {
       </div>
     </>
   );
+}
+
+function capStatus(s: string): string {
+  // Map appointment status string to a status pill variant
+  const lc = s.toLowerCase();
+  if (lc === "confirmed" || lc === "completed") return "Good";
+  if (lc === "cancelled") return "NeedsAttention";
+  return "Moderate"; // pending
 }
 
 function defaultSchedule(): string {
