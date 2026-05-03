@@ -126,25 +126,50 @@ def simulate_reading(day_index: int, total_days: int) -> dict:
 # Continuous-activity simulator (used by --simulate)
 # ---------------------------------------------------------------------------
 
-# Markov-ish transition table over activity states.
-# Probabilities tuned to a recovering patient: lots of sitting, occasional
-# walking, light exercise sessions, no running.
-TRANSITIONS = {
-    "sit":      [("sit", 0.55), ("stand", 0.25), ("walk", 0.15), ("exercise", 0.05)],
-    "stand":    [("sit", 0.30), ("stand", 0.25), ("walk", 0.40), ("exercise", 0.05)],
-    "walk":     [("sit", 0.25), ("stand", 0.20), ("walk", 0.50), ("exercise", 0.05)],
-    "exercise": [("sit", 0.50), ("stand", 0.20), ("walk", 0.20), ("exercise", 0.10)],
+# Markov-ish transition tables over activity states, indexed by activity level.
+# Recovering patients sit a lot; "low" simulates a frail/inactive patient,
+# "normal" a typical recoverer, "high" a motivated/athletic one.
+TRANSITION_TABLES = {
+    "low": {
+        "sit":      [("sit", 0.85), ("stand", 0.10), ("walk", 0.04), ("exercise", 0.01)],
+        "stand":    [("sit", 0.65), ("stand", 0.20), ("walk", 0.13), ("exercise", 0.02)],
+        "walk":     [("sit", 0.55), ("stand", 0.20), ("walk", 0.23), ("exercise", 0.02)],
+        "exercise": [("sit", 0.70), ("stand", 0.15), ("walk", 0.10), ("exercise", 0.05)],
+    },
+    "normal": {
+        "sit":      [("sit", 0.55), ("stand", 0.25), ("walk", 0.15), ("exercise", 0.05)],
+        "stand":    [("sit", 0.30), ("stand", 0.25), ("walk", 0.40), ("exercise", 0.05)],
+        "walk":     [("sit", 0.25), ("stand", 0.20), ("walk", 0.50), ("exercise", 0.05)],
+        "exercise": [("sit", 0.50), ("stand", 0.20), ("walk", 0.20), ("exercise", 0.10)],
+    },
+    "high": {
+        "sit":      [("sit", 0.35), ("stand", 0.25), ("walk", 0.30), ("exercise", 0.10)],
+        "stand":    [("sit", 0.15), ("stand", 0.20), ("walk", 0.55), ("exercise", 0.10)],
+        "walk":     [("sit", 0.10), ("stand", 0.15), ("walk", 0.65), ("exercise", 0.10)],
+        "exercise": [("sit", 0.30), ("stand", 0.15), ("walk", 0.40), ("exercise", 0.15)],
+    },
 }
 
 
-def next_state(current: str) -> str:
+def next_state(current: str, table: dict) -> str:
     r = random.random()
     cum = 0.0
-    for state, p in TRANSITIONS[current]:
+    for state, p in table[current]:
         cum += p
         if r <= cum:
             return state
-    return TRANSITIONS[current][-1][0]
+    return table[current][-1][0]
+
+
+def is_night(now: datetime, night_start: int, night_end: int) -> bool:
+    """True if `now` falls inside the night window [start, end) wall-clock hours."""
+    h = now.hour
+    if night_start == night_end:
+        return False
+    if night_start < night_end:
+        return night_start <= h < night_end
+    # window wraps midnight, e.g. 22..7
+    return h >= night_start or h < night_end
 
 
 def days_since_surgery(profile: dict) -> int:
@@ -271,9 +296,13 @@ def run_simulate(args: argparse.Namespace, token: str, base_url: str) -> int:
         print(f"[brain] /auth/me failed: {e.code} {e.read().decode()}", file=sys.stderr)
         return 1
 
+    table = TRANSITION_TABLES[args.activity_level]
     print(
         f"[brain] simulate mode  patient_id={profile.get('patient_id')}  "
-        f"surgery_date={profile.get('surgery_date')}"
+        f"surgery_date={profile.get('surgery_date')}  "
+        f"activity={args.activity_level}  "
+        f"night={args.night_start:02d}-{args.night_end:02d}  "
+        f"night_active={args.night_active}"
     )
 
     state = "sit"
@@ -288,15 +317,21 @@ def run_simulate(args: argparse.Namespace, token: str, base_url: str) -> int:
             print(f"[brain] day rollover {acc.day} -> {today}")
             acc = DayAccumulator(today)
 
+        # Night-time: patient sleeps. Force sit, no transition, no movement.
+        sleeping = is_night(now, args.night_start, args.night_end) and not args.night_active
+        if sleeping:
+            state = "sit"
+
         progress = recovery_progress(days_since_surgery(profile))
         tick = simulate_tick(state, args.tick, progress)
         acc.add(tick)
 
         payload = acc.payload()
+        label = "sleep" if sleeping else state
         try:
             saved = post_gait(base_url, token, payload)
             print(
-                f"[brain] {now.strftime('%Y-%m-%d %H:%M')}  state={state:<8}  "
+                f"[brain] {now.strftime('%Y-%m-%d %H:%M')}  state={label:<8}  "
                 f"+steps={tick['steps']:>4}  "
                 f"day_total_steps={payload['step_count']:>5}  "
                 f"avg_speed={payload['walking_speed']}m/s  "
@@ -311,7 +346,9 @@ def run_simulate(args: argparse.Namespace, token: str, base_url: str) -> int:
                 file=sys.stderr,
             )
 
-        state = next_state(state)
+        # During sleep keep state pinned to sit; otherwise advance via table.
+        if not sleeping:
+            state = next_state(state, table)
 
         try:
             time.sleep(args.tick)
@@ -423,6 +460,30 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=1800,
         help="Seconds per simulate tick (default 1800 = 30 min)",
+    )
+    p.add_argument(
+        "--activity-level",
+        choices=("low", "normal", "high"),
+        default=os.environ.get("ORTHORECO_ACTIVITY_LEVEL", "low"),
+        help="Patient activity profile (default low — sits a lot, moves rarely)",
+    )
+    p.add_argument(
+        "--night-start",
+        type=int,
+        default=int(os.environ.get("ORTHORECO_NIGHT_START", "22")),
+        help="Hour (0-23) at which sleep begins (default 22)",
+    )
+    p.add_argument(
+        "--night-end",
+        type=int,
+        default=int(os.environ.get("ORTHORECO_NIGHT_END", "7")),
+        help="Hour (0-23) at which sleep ends (default 7)",
+    )
+    p.add_argument(
+        "--night-active",
+        action="store_true",
+        default=os.environ.get("ORTHORECO_NIGHT_ACTIVE", "").lower() in ("1", "true", "yes"),
+        help="Allow movement at night for this user (e.g. shift workers)",
     )
     p.add_argument("--seed", type=int, default=None, help="Optional RNG seed")
 
