@@ -81,7 +81,7 @@ export function OverviewPage() {
               <XAxis dataKey="surgery_type" />
               <YAxis allowDecimals={false} />
               <Tooltip />
-              <Bar dataKey="patient_count" fill="#2563eb" />
+              <Bar dataKey="patient_count" fill="#4f6ef7" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

@@ -57,18 +57,21 @@ export function PatientDetailPage() {
           </h2>
           <Link
             to={`/appointments?patient_id=${profile.patient_id}`}
-            className="primary"
             style={{
-              display: "inline-block",
-              background: "#2563eb",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.4rem",
+              background: "linear-gradient(135deg, #4f6ef7, #7a8df9)",
               color: "#fff",
-              padding: "0.5rem 1rem",
-              borderRadius: "6px",
+              padding: "0.55rem 1.1rem",
+              borderRadius: "8px",
               textDecoration: "none",
-              fontSize: "0.9rem",
+              fontSize: "0.875rem",
+              fontWeight: 600,
+              boxShadow: "0 4px 12px rgba(79, 110, 247, 0.3)",
             }}
           >
-            Invite to appointment
+            📅 Invite to appointment
           </Link>
         </div>
         <div
