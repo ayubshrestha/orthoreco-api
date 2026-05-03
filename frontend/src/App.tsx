@@ -9,6 +9,7 @@ import { RegisterDoctorPage } from "./pages/RegisterDoctor";
 import { OverviewPage } from "./pages/Overview";
 import { PatientsPage } from "./pages/Patients";
 import { PatientDetailPage } from "./pages/PatientDetail";
+import { AppointmentsPage } from "./pages/Appointments";
 import { Layout } from "./components/Layout";
 import { isLoggedIn } from "./api";
 
@@ -35,6 +36,7 @@ export default function App() {
             path="/patients/:patientId"
             element={<PatientDetailPage />}
           />
+          <Route path="/appointments" element={<AppointmentsPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

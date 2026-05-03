@@ -119,6 +119,42 @@ export async function registerClinician(payload: ClinicianRegisterPayload) {
   return data;
 }
 
+export type Appointment = {
+  id: number;
+  doctor_id: number;
+  doctor_name: string;
+  doctor_email: string;
+  patient_id: number;
+  patient_patient_id: string;
+  patient_first_name: string;
+  patient_last_name: string;
+  patient_email: string;
+  scheduled_for: string;
+  location: string | null;
+  notes: string | null;
+  status: string;
+  invitation_sent: boolean;
+  created_at: string;
+};
+
+export type AppointmentCreatePayload = {
+  patient_id: string;
+  scheduled_for: string; // ISO datetime
+  location?: string;
+  notes?: string;
+  send_email?: boolean;
+};
+
+export async function createAppointment(payload: AppointmentCreatePayload) {
+  const { data } = await api.post<Appointment>("/appointments/", payload);
+  return data;
+}
+
+export async function listMyAppointments() {
+  const { data } = await api.get<Appointment[]>("/appointments/me");
+  return data;
+}
+
 export function logout() {
   localStorage.removeItem("orthoreco_token");
 }

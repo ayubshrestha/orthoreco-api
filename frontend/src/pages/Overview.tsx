@@ -119,6 +119,10 @@ export function OverviewPage() {
                     <td>{p.last_report_date}</td>
                     <td>
                       <Link to={`/patients/${p.patient_id}`}>View</Link>
+                      {" · "}
+                      <Link to={`/appointments?patient_id=${p.patient_id}`}>
+                        Invite
+                      </Link>
                     </td>
                   </tr>
                 ))}

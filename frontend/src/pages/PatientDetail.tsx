@@ -42,10 +42,35 @@ export function PatientDetailPage() {
       </Link>
 
       <div className="card">
-        <h2>
-          {profile.first_name} {profile.last_name}{" "}
-          <span className="muted">({profile.patient_id})</span>
-        </h2>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: "0.75rem",
+          }}
+        >
+          <h2 style={{ marginBottom: 0 }}>
+            {profile.first_name} {profile.last_name}{" "}
+            <span className="muted">({profile.patient_id})</span>
+          </h2>
+          <Link
+            to={`/appointments?patient_id=${profile.patient_id}`}
+            className="primary"
+            style={{
+              display: "inline-block",
+              background: "#2563eb",
+              color: "#fff",
+              padding: "0.5rem 1rem",
+              borderRadius: "6px",
+              textDecoration: "none",
+              fontSize: "0.9rem",
+            }}
+          >
+            Invite to appointment
+          </Link>
+        </div>
         <div
           style={{
             display: "grid",

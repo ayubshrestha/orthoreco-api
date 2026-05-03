@@ -111,6 +111,10 @@ export function Layout() {
             <span className="icon">☰</span>
             {(!collapsed || isMobile) && <span>Patients</span>}
           </NavLink>
+          <NavLink to="/appointments" title="Appointments">
+            <span className="icon">📅</span>
+            {(!collapsed || isMobile) && <span>Appointments</span>}
+          </NavLink>
         </nav>
 
         <div className="sidebar-foot">
