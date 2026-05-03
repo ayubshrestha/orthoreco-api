@@ -106,6 +106,7 @@ class ClinicianPatientSummary(BaseModel):
 class ClinicianDashboard(BaseModel):
     total_patients: int
     total_gait_records: int
+    
     patients: List[ClinicianPatientSummary]
 
 class PatientReportCreate(BaseModel):
@@ -266,8 +267,7 @@ class AdminAnalyticsOut(BaseModel):
     recovery_distribution: List[RecoveryBucket]
     top_risk_patients: List[RiskPatient]
     patients_active_last_7_days: int
-
-
+=======
 class WeeklyRecoverySummaryOut(BaseModel):
     total_checkins: int
     average_pain: float
@@ -281,3 +281,4 @@ class WeeklyRecoverySummaryOut(BaseModel):
     current_streak: int
     trend_message: str
     risk_message: str
+>>>>>>> weekly-report
