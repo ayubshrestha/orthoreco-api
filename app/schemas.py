@@ -27,6 +27,15 @@ class UserCreateByAdmin(BaseModel):
     role: str  # patient / clinician / admin
 
 
+class ClinicianRegister(BaseModel):
+    first_name: str
+    last_name: str
+    gender: str
+    license_id: str
+    email: EmailStr
+    password: str
+
+
 class UserOut(BaseModel):
     id: int
     first_name: str
@@ -202,6 +211,49 @@ class RiskPatient(BaseModel):
 class RecoveryBucket(BaseModel):
     bucket: str  # "Good" | "Moderate" | "Needs Attention" | "No data"
     patient_count: int
+
+
+class PatientNoteCreate(BaseModel):
+    patient_id: str  # User.patient_id (string)
+    body: str
+    send_email: bool = False
+
+
+class PatientNoteOut(BaseModel):
+    id: int
+    doctor_id: int
+    doctor_name: str
+    patient_id: int
+    patient_patient_id: str
+    body: str
+    sent_email: bool
+    created_at: datetime
+
+
+class AppointmentCreate(BaseModel):
+    patient_id: str  # User.patient_id (string)
+    scheduled_for: datetime
+    location: Optional[str] = None
+    notes: Optional[str] = None
+    send_email: bool = True
+
+
+class AppointmentOut(BaseModel):
+    id: int
+    doctor_id: int
+    doctor_name: str
+    doctor_email: EmailStr
+    patient_id: int
+    patient_patient_id: str
+    patient_first_name: str
+    patient_last_name: str
+    patient_email: EmailStr
+    scheduled_for: datetime
+    location: Optional[str]
+    notes: Optional[str]
+    status: str
+    invitation_sent: bool
+    created_at: datetime
 
 
 class AdminAnalyticsOut(BaseModel):
