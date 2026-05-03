@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { login } from "../api";
 
 export function LoginPage() {
@@ -59,6 +59,10 @@ export function LoginPage() {
         <p className="muted" style={{ marginTop: "1rem" }}>
           Demo: <code>admin@demo.com</code> / <code>admin123</code><br />
           Demo: <code>doctor@demo.com</code> / <code>doctor123</code>
+        </p>
+
+        <p className="muted" style={{ marginTop: "0.5rem" }}>
+          New doctor? <Link to="/register-doctor">Create an account</Link>
         </p>
       </form>
     </div>

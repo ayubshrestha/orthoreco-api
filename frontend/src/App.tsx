@@ -5,6 +5,7 @@ import {
   Routes,
 } from "react-router-dom";
 import { LoginPage } from "./pages/Login";
+import { RegisterDoctorPage } from "./pages/RegisterDoctor";
 import { OverviewPage } from "./pages/Overview";
 import { PatientsPage } from "./pages/Patients";
 import { PatientDetailPage } from "./pages/PatientDetail";
@@ -20,6 +21,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register-doctor" element={<RegisterDoctorPage />} />
         <Route
           element={
             <RequireAuth>

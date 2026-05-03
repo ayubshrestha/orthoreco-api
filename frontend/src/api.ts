@@ -105,6 +105,20 @@ export async function login(email: string, password: string) {
   return data.access_token;
 }
 
+export type ClinicianRegisterPayload = {
+  first_name: string;
+  last_name: string;
+  gender: string;
+  license_id: string;
+  email: string;
+  password: string;
+};
+
+export async function registerClinician(payload: ClinicianRegisterPayload) {
+  const { data } = await api.post("/auth/register-clinician", payload);
+  return data;
+}
+
 export function logout() {
   localStorage.removeItem("orthoreco_token");
 }
