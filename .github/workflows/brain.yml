@@ -1,0 +1,39 @@
+name: brain-daily-sensor
+
+# Runs the simulated hardware "brain" on a schedule so daily gait readings are
+# pushed into the Orthoreco API even when no developer is at the keyboard.
+#
+# Required repository secrets (Settings -> Secrets and variables -> Actions):
+#   ORTHORECO_BASE_URL   public URL of the deployed API (e.g. https://orthoreco.onrender.com)
+#   ORTHORECO_EMAIL      patient account email
+#   ORTHORECO_PASSWORD   patient account password
+#
+# NOTE: GitHub Actions runners cannot reach localhost. The API must be
+# publicly hosted (Render / Railway / Fly.io / your own server) for this
+# workflow to deliver data.
+
+on:
+  schedule:
+    # 06:00 UTC daily. Adjust to taste.
+    - cron: "0 6 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  send-reading:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Send today's sensor reading
+        env:
+          ORTHORECO_BASE_URL: ${{ secrets.ORTHORECO_BASE_URL }}
+          ORTHORECO_EMAIL: ${{ secrets.ORTHORECO_EMAIL }}
+          ORTHORECO_PASSWORD: ${{ secrets.ORTHORECO_PASSWORD }}
+        run: python brain.py --once

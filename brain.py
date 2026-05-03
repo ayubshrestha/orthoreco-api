@@ -27,6 +27,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import os
 import random
 import sys
 import time
@@ -36,7 +37,7 @@ import urllib.request
 from datetime import date, timedelta
 
 
-DEFAULT_BASE_URL = "http://127.0.0.1:8000"
+DEFAULT_BASE_URL = os.environ.get("ORTHORECO_BASE_URL", "http://127.0.0.1:8000")
 
 
 def login(base_url: str, email: str, password: str) -> str:
@@ -120,53 +121,86 @@ def run(args: argparse.Namespace) -> int:
     print("[brain] login ok, sensors online")
 
     today = date.today()
-    start = today - timedelta(days=args.days - 1)
 
+    # --once / --today: single reading dated today, treated as latest day in
+    # recovery window (most recovered point on the curve).
+    if args.once or args.today:
+        reading = simulate_reading(day_index=args.days - 1, total_days=args.days)
+        reading["record_date"] = today.isoformat()
+        return _send_one(args.base_url, token, today, reading)
+
+    # Backfill mode: N consecutive days ending today.
+    start = today - timedelta(days=args.days - 1)
+    rc = 0
     for i in range(args.days):
         record_date = start + timedelta(days=i)
         reading = simulate_reading(day_index=i, total_days=args.days)
         reading["record_date"] = record_date.isoformat()
+        rc |= _send_one(args.base_url, token, record_date, reading)
 
-        try:
-            saved = post_gait(args.base_url, token, reading)
-            print(
-                f"[brain] {record_date}  steps={reading['step_count']:>5}  "
-                f"speed={reading['walking_speed']}m/s  "
-                f"cadence={reading['cadence']}  "
-                f"dist={reading['distance']}km  "
-                f"active={reading['active_minutes']}min  "
-                f"-> id={saved.get('id')}"
-            )
-        except urllib.error.HTTPError as e:
-            print(
-                f"[brain] POST failed on {record_date}: {e.code} {e.read().decode()}",
-                file=sys.stderr,
-            )
-
-        if args.once:
-            break
         if i < args.days - 1 and args.interval > 0:
             time.sleep(args.interval)
 
     print("[brain] done")
-    return 0
+    return rc
+
+
+def _send_one(base_url: str, token: str, record_date: date, reading: dict) -> int:
+    try:
+        saved = post_gait(base_url, token, reading)
+        print(
+            f"[brain] {record_date}  steps={reading['step_count']:>5}  "
+            f"speed={reading['walking_speed']}m/s  "
+            f"cadence={reading['cadence']}  "
+            f"dist={reading['distance']}km  "
+            f"active={reading['active_minutes']}min  "
+            f"-> id={saved.get('id')}"
+        )
+        return 0
+    except urllib.error.HTTPError as e:
+        print(
+            f"[brain] POST failed on {record_date}: {e.code} {e.read().decode()}",
+            file=sys.stderr,
+        )
+        return 1
 
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Orthoreco hardware sensor simulator")
-    p.add_argument("--email", required=True, help="Patient login email")
-    p.add_argument("--password", required=True, help="Patient password")
+    p.add_argument(
+        "--email",
+        default=os.environ.get("ORTHORECO_EMAIL"),
+        help="Patient login email (or env ORTHORECO_EMAIL)",
+    )
+    p.add_argument(
+        "--password",
+        default=os.environ.get("ORTHORECO_PASSWORD"),
+        help="Patient password (or env ORTHORECO_PASSWORD)",
+    )
     p.add_argument("--base-url", default=DEFAULT_BASE_URL, help="API base URL")
-    p.add_argument("--days", type=int, default=7, help="How many days of data to send")
+    p.add_argument("--days", type=int, default=7, help="Recovery-window length in days")
     p.add_argument(
         "--interval",
         type=float,
         default=2.0,
-        help="Seconds to wait between sends (0 = blast all at once)",
+        help="Seconds to wait between sends in backfill mode (0 = blast)",
     )
-    p.add_argument("--once", action="store_true", help="Send only one reading and exit")
+    p.add_argument(
+        "--once",
+        action="store_true",
+        help="Send a single reading dated today, then exit (use for cron)",
+    )
+    p.add_argument(
+        "--today",
+        action="store_true",
+        help="Alias of --once: send today's reading and exit",
+    )
     p.add_argument("--seed", type=int, default=None, help="Optional RNG seed")
-    return p.parse_args()
+
+    args = p.parse_args()
+    if not args.email or not args.password:
+        p.error("email and password required (flags or ORTHORECO_EMAIL/ORTHORECO_PASSWORD)")
+    return args
 
 
 if __name__ == "__main__":
