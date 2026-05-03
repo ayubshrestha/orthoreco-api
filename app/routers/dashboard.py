@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import User, GaitRecord, PatientReport
+from app.models import User, GaitRecord, PatientReport, Appointment
 from app.schemas import (
     PatientDashboard,
     ClinicianPatientSummary,
@@ -49,6 +49,30 @@ def _score_report(report: PatientReport) -> tuple[int, str]:
     else:
         status_text = "Needs Attention"
     return score, status_text
+
+
+def _accessible_patient_ids(db: Session, user: User) -> list[int] | None:
+    """
+    Returns the list of User.id values a clinician is allowed to see.
+    None means no scope filter (admin).
+    """
+    if user.role == "admin":
+        return None
+    rows = (
+        db.query(Appointment.patient_id)
+        .filter(Appointment.doctor_id == user.id)
+        .distinct()
+        .all()
+    )
+    return [r[0] for r in rows]
+
+
+def _scope_patient_query(query, accessible_ids: list[int] | None):
+    if accessible_ids is None:
+        return query
+    if not accessible_ids:
+        return query.filter(False)
+    return query.filter(User.id.in_(accessible_ids))
 
 
 def _build_table_row(db: Session, patient: User) -> PatientTableRow:
@@ -259,8 +283,10 @@ def admin_patient_table(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_roles("clinician", "admin")),
 ):
-    """Table view: every patient with summary stats and latest recovery state."""
+    """Table view: every patient (admin) or only the patients this clinician
+    has appointments with (clinician)."""
     q = db.query(User).filter(User.role == "patient")
+    q = _scope_patient_query(q, _accessible_patient_ids(db, current_user))
 
     if surgery_type:
         q = q.filter(User.surgery_type == surgery_type)
@@ -278,6 +304,19 @@ def admin_patient_table(
     return [_build_table_row(db, p) for p in patients]
 
 
+def _check_patient_accessible(db: Session, current_user: User, patient: User) -> None:
+    """Raise 403 if a clinician tries to read a patient they have no
+    appointments with. Admins always pass."""
+    if current_user.role == "admin":
+        return
+    accessible = _accessible_patient_ids(db, current_user) or []
+    if patient.id not in accessible:
+        raise HTTPException(
+            status_code=403,
+            detail="You do not manage this patient",
+        )
+
+
 @router.get("/admin/patients/{patient_id}", response_model=PatientDetailOut)
 def admin_patient_detail(
     patient_id: str,
@@ -292,6 +331,7 @@ def admin_patient_detail(
     )
     if not patient:
         raise HTTPException(status_code=404, detail="Patient not found")
+    _check_patient_accessible(db, current_user, patient)
 
     cutoff = date.today() - timedelta(days=days - 1)
 
@@ -367,6 +407,7 @@ def admin_patient_gait_series(
     )
     if not patient:
         raise HTTPException(status_code=404, detail="Patient not found")
+    _check_patient_accessible(db, current_user, patient)
 
     cutoff = date.today() - timedelta(days=days - 1)
 
@@ -411,6 +452,7 @@ def admin_patient_reports_series(
     )
     if not patient:
         raise HTTPException(status_code=404, detail="Patient not found")
+    _check_patient_accessible(db, current_user, patient)
 
     cutoff = date.today() - timedelta(days=days - 1)
 
@@ -448,30 +490,48 @@ def admin_analytics(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_roles("clinician", "admin")),
 ):
-    """Aggregate KPIs across all patients."""
-    total_patients = (
-        db.query(func.count(User.id)).filter(User.role == "patient").scalar()
-    ) or 0
-    total_clinicians = (
-        db.query(func.count(User.id)).filter(User.role == "clinician").scalar()
-    ) or 0
-    total_gait = db.query(func.count(GaitRecord.id)).scalar() or 0
-    total_reports = db.query(func.count(PatientReport.id)).scalar() or 0
+    """Aggregate KPIs. Scoped to the clinician's own patients unless admin."""
+    accessible = _accessible_patient_ids(db, current_user)
 
-    # Surgery-type distribution
-    surgery_rows = (
+    base_patients = db.query(User).filter(User.role == "patient")
+    base_patients = _scope_patient_query(base_patients, accessible)
+
+    total_patients = base_patients.with_entities(func.count(User.id)).scalar() or 0
+
+    if current_user.role == "admin":
+        total_clinicians = (
+            db.query(func.count(User.id)).filter(User.role == "clinician").scalar()
+        ) or 0
+        total_gait = db.query(func.count(GaitRecord.id)).scalar() or 0
+        total_reports = db.query(func.count(PatientReport.id)).scalar() or 0
+    else:
+        total_clinicians = 0
+        ids = accessible or []
+        total_gait = (
+            db.query(func.count(GaitRecord.id))
+            .filter(GaitRecord.user_id.in_(ids))
+            .scalar()
+        ) or 0
+        total_reports = (
+            db.query(func.count(PatientReport.id))
+            .filter(PatientReport.user_id.in_(ids))
+            .scalar()
+        ) or 0
+
+    # Surgery-type distribution (scoped)
+    surgery_q = (
         db.query(User.surgery_type, func.count(User.id))
         .filter(User.role == "patient")
-        .group_by(User.surgery_type)
-        .all()
     )
+    surgery_q = _scope_patient_query(surgery_q, accessible)
+    surgery_rows = surgery_q.group_by(User.surgery_type).all()
     surgery_breakdown = [
         SurgeryTypeBreakdown(surgery_type=row[0], patient_count=row[1])
         for row in surgery_rows
     ]
 
     # Per-patient latest report → recovery score, used for distribution + risk list
-    patients = db.query(User).filter(User.role == "patient").all()
+    patients = base_patients.all()
 
     buckets = {"Good": 0, "Moderate": 0, "Needs Attention": 0, "No data": 0}
     score_total = 0
@@ -513,14 +573,16 @@ def admin_analytics(
 
     avg_score = round(score_total / score_count, 1) if score_count else 0.0
 
-    # Active in last 7 days = at least one gait record in window
+    # Active in last 7 days = at least one gait record in window (scoped)
     week_ago = date.today() - timedelta(days=6)
-    active_rows = (
+    active_q = (
         db.query(GaitRecord.user_id)
         .filter(GaitRecord.record_date >= week_ago)
-        .distinct()
-        .count()
     )
+    if accessible is not None:
+        ids = accessible or []
+        active_q = active_q.filter(GaitRecord.user_id.in_(ids))
+    active_rows = active_q.distinct().count()
 
     return AdminAnalyticsOut(
         total_patients=total_patients,

@@ -51,7 +51,6 @@ export function OverviewPage() {
 
       <div className="kpi-grid">
         <Kpi label="Patients" value={data.total_patients} />
-        <Kpi label="Clinicians" value={data.total_clinicians} />
         <Kpi label="Gait records" value={data.total_gait_records} />
         <Kpi label="Reports" value={data.total_reports} />
         <Kpi label="Avg recovery" value={data.average_recovery_score} />
