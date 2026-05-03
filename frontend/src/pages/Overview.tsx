@@ -48,13 +48,7 @@ export function OverviewPage() {
         <Kpi label="Active (7d)" value={data.patients_active_last_7_days} />
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "1.25rem",
-        }}
-      >
+      <div className="charts-grid">
         <div className="card">
           <h2>Recovery distribution</h2>
           <ResponsiveContainer width="100%" height={260}>
@@ -98,37 +92,39 @@ export function OverviewPage() {
         {data.top_risk_patients.length === 0 ? (
           <p className="muted">No patients flagged as needing attention.</p>
         ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Patient</th>
-                <th>Surgery</th>
-                <th>Score</th>
-                <th>Status</th>
-                <th>Last report</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.top_risk_patients.map((p) => (
-                <tr key={p.patient_id}>
-                  <td>
-                    {p.first_name} {p.last_name}{" "}
-                    <span className="muted">({p.patient_id})</span>
-                  </td>
-                  <td>{p.surgery_type}</td>
-                  <td>{p.latest_recovery_score}</td>
-                  <td>
-                    <StatusPill status={p.latest_recovery_status} />
-                  </td>
-                  <td>{p.last_report_date}</td>
-                  <td>
-                    <Link to={`/patients/${p.patient_id}`}>View</Link>
-                  </td>
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Patient</th>
+                  <th>Surgery</th>
+                  <th>Score</th>
+                  <th>Status</th>
+                  <th>Last report</th>
+                  <th></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {data.top_risk_patients.map((p) => (
+                  <tr key={p.patient_id}>
+                    <td>
+                      {p.first_name} {p.last_name}{" "}
+                      <span className="muted">({p.patient_id})</span>
+                    </td>
+                    <td>{p.surgery_type}</td>
+                    <td>{p.latest_recovery_score}</td>
+                    <td>
+                      <StatusPill status={p.latest_recovery_status} />
+                    </td>
+                    <td>{p.last_report_date}</td>
+                    <td>
+                      <Link to={`/patients/${p.patient_id}`}>View</Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </>

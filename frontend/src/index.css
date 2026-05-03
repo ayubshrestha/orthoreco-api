@@ -214,14 +214,106 @@ main {
   margin: 0 auto;
 }
 
+/* ---------- Mobile drawer ---------- */
+
+.mobile-topbar {
+  display: none;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
+  background: #1e293b;
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.mobile-toggle {
+  background: transparent;
+  color: #fff;
+  border: 1px solid #334155;
+  padding: 0.35rem 0.7rem;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.mobile-title {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  z-index: 40;
+}
+
+.app-shell.is-mobile {
+  flex-direction: column;
+}
+
+.app-shell.is-mobile .mobile-topbar {
+  display: flex;
+}
+
+.app-shell.is-mobile .sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 240px;
+  transform: translateX(-100%);
+  transition: transform 0.2s ease;
+  z-index: 50;
+}
+
+.app-shell.is-mobile.mobile-open .sidebar {
+  transform: translateX(0);
+}
+
+.app-shell.is-mobile.mobile-open .sidebar-backdrop {
+  display: block;
+}
+
+.app-shell.is-mobile .content-area {
+  width: 100%;
+}
+
 @media (max-width: 720px) {
-  .sidebar {
-    width: 64px;
+  main {
+    padding: 1rem;
   }
-  .sidebar .brand-text,
-  .sidebar-nav a span:not(.icon),
-  .sidebar-logout span:not(.icon) {
-    display: none;
+  .card {
+    padding: 1rem;
+  }
+  .kpi-value {
+    font-size: 1.4rem;
+  }
+}
+
+/* Tables: horizontal scroll on narrow viewports */
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 -0.25rem;
+}
+
+.table-wrap table {
+  min-width: 560px;
+}
+
+/* Charts grid (used in Overview) collapses to one column on narrow screens */
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+@media (max-width: 900px) {
+  .charts-grid {
+    grid-template-columns: 1fr;
   }
 }
 

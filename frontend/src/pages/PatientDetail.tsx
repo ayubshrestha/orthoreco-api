@@ -201,38 +201,40 @@ export function PatientDetailPage() {
         {recent_reports.length === 0 ? (
           <p className="muted">No check-ins in this window.</p>
         ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Pain</th>
-                <th>Stiffness</th>
-                <th>Walking</th>
-                <th>Confidence</th>
-                <th>Swelling</th>
-                <th>Exercise</th>
-                <th>Score</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[...recent_reports].reverse().map((r) => (
-                <tr key={r.report_date}>
-                  <td>{r.report_date}</td>
-                  <td>{r.pain_score}</td>
-                  <td>{r.stiffness_score}</td>
-                  <td>{r.walking_difficulty}</td>
-                  <td>{r.confidence_score}</td>
-                  <td>{r.swelling_flag ? "Yes" : "No"}</td>
-                  <td>{r.exercise_completed ? "Yes" : "No"}</td>
-                  <td>{r.recovery_score}</td>
-                  <td>
-                    <StatusPill status={r.recovery_status} />
-                  </td>
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Pain</th>
+                  <th>Stiffness</th>
+                  <th>Walking</th>
+                  <th>Confidence</th>
+                  <th>Swelling</th>
+                  <th>Exercise</th>
+                  <th>Score</th>
+                  <th>Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {[...recent_reports].reverse().map((r) => (
+                  <tr key={r.report_date}>
+                    <td>{r.report_date}</td>
+                    <td>{r.pain_score}</td>
+                    <td>{r.stiffness_score}</td>
+                    <td>{r.walking_difficulty}</td>
+                    <td>{r.confidence_score}</td>
+                    <td>{r.swelling_flag ? "Yes" : "No"}</td>
+                    <td>{r.exercise_completed ? "Yes" : "No"}</td>
+                    <td>{r.recovery_score}</td>
+                    <td>
+                      <StatusPill status={r.recovery_status} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </>
