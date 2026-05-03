@@ -399,6 +399,7 @@ thead th {
   top: 0;
   z-index: 1;
 }
+thead th.num { text-align: right; }
 thead th:first-child {
   border-top-left-radius: var(--r);
   border-left: 1px solid var(--border);
@@ -436,26 +437,36 @@ tbody tr:hover { background: var(--surface-2); }
   display: flex;
   align-items: center;
   gap: 0.6rem;
+  min-width: 0;
 }
 .cell-stack {
   display: flex;
   flex-direction: column;
-  gap: 0.05rem;
+  gap: 0.1rem;
   min-width: 0;
+  flex: 1;
 }
 .cell-stack .primary {
   font-weight: 500;
   color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
 }
 .cell-stack .secondary {
   color: var(--text-muted);
   font-size: 0.72rem;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+}
+
+/* Compact variant: forbid wrapping (use on date/time stacks) */
+.cell-stack.nowrap .primary,
+.cell-stack.nowrap .secondary {
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  word-break: keep-all;
+  overflow-wrap: normal;
 }
 
 /* Action cell — subtle link group */
@@ -735,7 +746,7 @@ tbody tr:hover { background: var(--surface-2); }
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
-.table-wrap table { min-width: 560px; }
+.table-wrap table { min-width: 720px; }
 
 .charts-grid {
   display: grid;

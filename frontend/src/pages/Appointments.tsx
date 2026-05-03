@@ -218,7 +218,7 @@ export function AppointmentsPage() {
                   return (
                     <tr key={a.id}>
                       <td>
-                        <div className="cell-stack">
+                        <div className="cell-stack nowrap">
                           <span className="primary num-mono">
                             {dt.toLocaleDateString()}
                           </span>
