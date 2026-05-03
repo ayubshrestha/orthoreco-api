@@ -73,6 +73,21 @@ class GaitRecord(Base):
     user = relationship("User", back_populates="gait_records")
 
 
+class PatientNote(Base):
+    __tablename__ = "patient_notes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    doctor_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    patient_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+
+    body = Column(Text, nullable=False)
+    sent_email = Column(Boolean, default=False, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    doctor = relationship("User", foreign_keys=[doctor_id])
+    patient = relationship("User", foreign_keys=[patient_id])
+
+
 class Appointment(Base):
     __tablename__ = "appointments"
 

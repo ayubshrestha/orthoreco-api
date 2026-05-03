@@ -13,6 +13,7 @@ import {
 import { api, type PatientDetail } from "../api";
 import { StatusPill } from "../components/StatusPill";
 import { IconArrowLeft, IconCalendar } from "../components/Icons";
+import { PatientNotes } from "../components/PatientNotes";
 
 export function PatientDetailPage() {
   const { patientId } = useParams<{ patientId: string }>();
@@ -105,6 +106,8 @@ export function PatientDetailPage() {
           </label>
         </div>
       </div>
+
+      <PatientNotes patientId={profile.patient_id} />
 
       <div className="card">
         <h2>Daily activity (steps & active minutes)</h2>

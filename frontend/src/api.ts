@@ -155,6 +155,35 @@ export async function listMyAppointments() {
   return data;
 }
 
+export type PatientNote = {
+  id: number;
+  doctor_id: number;
+  doctor_name: string;
+  patient_id: number;
+  patient_patient_id: string;
+  body: string;
+  sent_email: boolean;
+  created_at: string;
+};
+
+export type PatientNoteCreatePayload = {
+  patient_id: string;
+  body: string;
+  send_email?: boolean;
+};
+
+export async function createPatientNote(payload: PatientNoteCreatePayload) {
+  const { data } = await api.post<PatientNote>("/patient-notes/", payload);
+  return data;
+}
+
+export async function listPatientNotes(patientId: string) {
+  const { data } = await api.get<PatientNote[]>(
+    `/patient-notes/patient/${encodeURIComponent(patientId)}`,
+  );
+  return data;
+}
+
 export function logout() {
   localStorage.removeItem("orthoreco_token");
 }

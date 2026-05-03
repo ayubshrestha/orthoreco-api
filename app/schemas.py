@@ -213,6 +213,23 @@ class RecoveryBucket(BaseModel):
     patient_count: int
 
 
+class PatientNoteCreate(BaseModel):
+    patient_id: str  # User.patient_id (string)
+    body: str
+    send_email: bool = False
+
+
+class PatientNoteOut(BaseModel):
+    id: int
+    doctor_id: int
+    doctor_name: str
+    patient_id: int
+    patient_patient_id: str
+    body: str
+    sent_email: bool
+    created_at: datetime
+
+
 class AppointmentCreate(BaseModel):
     patient_id: str  # User.patient_id (string)
     scheduled_for: datetime
